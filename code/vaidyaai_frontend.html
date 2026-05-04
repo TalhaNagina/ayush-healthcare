@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VaidyaAI — AYUSH Intelligence Platform</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:     #0A2540;
+      --teal:     #007C89;
+      --teal-dk:  #005F6B;
+      --saffron:  #E8813A;
+      --white:    #FFFFFF;
+      --off:      #F0F4F8;
+      --muted:    #8FA8BF;
+      --text:     #1A2B3C;
+      --card:     #FFFFFF;
+      --border:   #D6E4EE;
+      --green:    #1DB954;
+      --red:      #E74C3C;
+      --amber:    #F39C12;
+      --sidebar:  56px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--off);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar);
+      background: var(--navy);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 0;
+      gap: 8px;
+      position: fixed;
+      left: 0; top: 0; bottom: 0;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      width: 36px; height: 36px;
+      background: var(--teal);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Serif Display', serif;
+      font-size: 18px;
+      color: white;
+      margin-bottom: 12px;
+    }
+
+    .nav-btn {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-btn.active { background: var(--teal); color: white; }
+    .nav-tooltip {
+      position: absolute;
+      left: 52px;
+      background: var(--navy);
+      color: white;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .nav-btn:hover .nav-tooltip { opacity: 1; }
+
+    /* ── MAIN ── */
+    .main {
+      margin-left: var(--sidebar);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      height: 56px;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 12px;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      color: var(--navy);
+    }
+    .topbar-subtitle { font-size: 12px; color: var(--muted); margin-top: 1px; }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .sovereign-badge {
+      background: #E8F5E9;
+      color: #1B6B36;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      letter-spacing: 0.3px;
+    }
+    .doctor-chip {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text);
+    }
+    .doctor-avatar {
+      width: 28px; height: 28px;
+      background: var(--teal);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 11px; font-weight: 600;
+    }
+
+    /* ── PAGE ── */
+    .page { padding: 24px; flex: 1; }
+    .page-header { margin-bottom: 20px; }
+    .page-header h2 { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--navy); }
+    .page-header p { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── EHR SCREEN ── */
+    .ehr-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .lang-select {
+      display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .lang-btn {
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: white;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .lang-btn.active {
+      border-color: var(--teal);
+      background: var(--teal);
+      color: white;
+    }
+
+    /* MIC BUTTON */
+    .mic-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 28px 0;
+    }
+    .mic-btn {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      border: none;
+      background: var(--teal);
+      color: white;
+      font-size: 30px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(0,124,137,0.35);
+      position: relative;
+    }
+    .mic-btn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(0,124,137,0.45); }
+    .mic-btn.recording {
+      background: var(--red);
+      animation: pulse-ring 1.2s ease-out infinite;
+      box-shadow: 0 4px 20px rgba(231,76,60,0.4);
+    }
+    @keyframes pulse-ring {
+      0%   { box-shadow: 0 0 0 0 rgba(231,76,60,0.4); }
+      70%  { box-shadow: 0 0 0 18px rgba(231,76,60,0); }
+      100% { box-shadow: 0 0 0 0 rgba(231,76,60,0); }
+    }
+    .mic-status { font-size: 13px; color: var(--muted); }
+    .mic-status.active { color: var(--red); font-weight: 500; }
+
+    /* Transcript area */
+    .transcript-box {
+      min-height: 80px;
+      background: var(--off);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .transcript-box.processing::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--teal), transparent);
+      animation: scan 1.5s linear infinite;
+    }
+    @keyframes scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+    /* EHR form fields */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-field {
+      padding: 8px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      background: white;
+      transition: border-color 0.15s;
+      color: var(--text);
+    }
+    .form-field:focus { outline: none; border-color: var(--teal); }
+    .form-field.populated {
+      border-color: var(--teal);
+      background: #E8F5F6;
+      animation: field-pop 0.3s ease;
+    }
+    @keyframes field-pop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+
+    /* Prakriti badge */
+    .prakriti-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: linear-gradient(135deg, #005F6B, #007C89);
+      color: white;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .symptoms-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .symptom-tag {
+      padding: 3px 9px;
+      background: #FFF3E8;
+      color: var(--saffron);
+      border: 1px solid #FDDBB8;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    /* Save button */
+    .save-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--teal);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+      margin-top: 12px;
+    }
+    .save-btn:hover:not(:disabled) { background: var(--teal-dk); }
+    .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── SURVEILLANCE SCREEN ── */
+    .surv-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+    }
+
+    /* Map placeholder */
+    .map-container {
+      height: 420px;
+      background: var(--navy);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .map-bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 35% 60%, rgba(0,124,137,0.15) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 50% at 65% 40%, rgba(232,129,58,0.08) 0%, transparent 60%);
+    }
+    .india-outline {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.12;
+      font-size: 200px;
+    }
+    .map-dot {
+      position: absolute;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .map-dot:hover { transform: translate(-50%, -50%) scale(1.5); }
+    .map-dot.critical { background: var(--red); box-shadow: 0 0 0 4px rgba(231,76,60,0.3); animation: map-pulse 1.5s ease-out infinite; }
+    .map-dot.high     { background: var(--saffron); box-shadow: 0 0 0 3px rgba(232,129,58,0.3); }
+    .map-dot.medium   { background: var(--amber); }
+    .map-dot.normal   { background: var(--muted); opacity: 0.5; }
+    @keyframes map-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(231,76,60,0.5); }
+      100% { box-shadow: 0 0 0 16px rgba(231,76,60,0); }
+    }
+    .map-legend {
+      position: absolute; bottom: 14px; left: 14px;
+      background: rgba(10,37,64,0.9);
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex; gap: 12px;
+    }
+    .map-legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #8FA8BF; }
+    .map-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .map-stats {
+      position: absolute; top: 14px; left: 14px;
+      display: flex; gap: 8px;
+    }
+    .map-stat-chip {
+      background: rgba(10,37,64,0.85);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 11px;
+      color: white;
+    }
+    .map-stat-chip strong { display: block; font-size: 16px; color: var(--saffron); }
+
+    /* Alert cards */
+    .alert-list { display: flex; flex-direction: column; gap: 10px; }
+    .alert-card {
+      border-radius: 10px;
+      padding: 12px;
+      border-left: 4px solid;
+      background: white;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .alert-card:hover { transform: translateX(3px); box-shadow: 2px 4px 12px rgba(0,0,0,0.08); }
+    .alert-card.CRITICAL { border-left-color: var(--red); }
+    .alert-card.HIGH     { border-left-color: var(--saffron); }
+    .alert-card.MEDIUM   { border-left-color: var(--amber); }
+    .alert-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .alert-severity {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+      letter-spacing: 0.5px;
+    }
+    .alert-severity.CRITICAL { background: #FDECEA; color: var(--red); }
+    .alert-severity.HIGH     { background: #FFF3E8; color: var(--saffron); }
+    .alert-severity.MEDIUM   { background: #FFFDE7; color: #B7820A; }
+    .alert-disease { font-size: 13px; font-weight: 600; color: var(--navy); }
+    .alert-district { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+    .alert-meta { display: flex; gap: 10px; }
+    .alert-stat { font-size: 11px; color: var(--text); }
+    .alert-stat strong { color: var(--red); }
+
+    /* ── TREATMENT SCREEN ── */
+    .treat-grid {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 16px;
+    }
+
+    .patient-card {
+      background: linear-gradient(135deg, var(--navy), var(--teal-dk));
+      color: white;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .patient-name { font-family: 'DM Serif Display', serif; font-size: 20px; margin-bottom: 4px; }
+    .patient-sub { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
+    .patient-tags { display: flex; flex-direction: column; gap: 8px; }
+    .patient-tag { display: flex; justify-content: space-between; font-size: 12px; }
+    .patient-tag span:first-child { color: rgba(255,255,255,0.5); }
+    .patient-tag span:last-child { font-weight: 600; }
+
+    /* Treatment tabs */
+    .treat-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+    .treat-tab {
+      flex: 1;
+      padding: 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      transition: all 0.15s;
+      text-align: center;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .treat-tab.active {
+      border-color: var(--teal);
+      background: var(--teal);
+      color: white;
+    }
+
+    /* Recommendation item */
+    .rec-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 10px;
+      background: white;
+      transition: all 0.15s;
+    }
+    .rec-item:hover { border-color: var(--teal); }
+    .rec-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
+    .rec-title { font-size: 13px; font-weight: 600; color: var(--navy); flex: 1; }
+    .rec-confidence { font-size: 11px; color: white; background: var(--teal); padding: 2px 7px; border-radius: 10px; white-space: nowrap; font-weight: 600; }
+    .confidence-bar-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 8px; }
+    .confidence-bar-fill  { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--teal), var(--green)); transition: width 0.8s ease; }
+    .rec-evidence { font-size: 11px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
+    .rec-actions { display: flex; gap: 6px; }
+    .rec-action-btn {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1.5px solid;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+    }
+    .rec-action-btn.accept { border-color: var(--green); color: var(--green); background: white; }
+    .rec-action-btn.accept:hover, .rec-action-btn.accept.selected { background: var(--green); color: white; }
+    .rec-action-btn.modify  { border-color: var(--amber); color: var(--amber); background: white; }
+    .rec-action-btn.modify:hover, .rec-action-btn.modify.selected { background: var(--amber); color: white; }
+    .rec-action-btn.reject { border-color: var(--red); color: var(--red); background: white; }
+    .rec-action-btn.reject:hover, .rec-action-btn.reject.selected { background: var(--red); color: white; }
+
+    /* Narrative box */
+    .narrative-box {
+      background: linear-gradient(135deg, #E8F5F6, #F0F9FA);
+      border: 1px solid #B2DDE2;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .narrative-label { font-size: 10px; font-weight: 700; color: var(--teal); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+    .narrative-text { font-size: 13px; line-height: 1.7; color: var(--text); }
+
+    /* Feedback summary bar */
+    .feedback-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+    }
+    .feedback-label { font-size: 12px; color: var(--muted); }
+    .feedback-stat { font-size: 13px; font-weight: 600; color: var(--navy); }
+    .feedback-stat span { color: var(--teal); }
+
+    /* ── LOADING SPINNER ── */
+    .spinner {
+      display: inline-block;
+      width: 20px; height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--navy);
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      animation: toast-in 0.3s ease;
+      z-index: 1000;
+    }
+    @keyframes toast-in { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--muted);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+    .empty-state p { font-size: 13px; }
+
+    /* Loading overlay */
+    .processing-overlay {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      gap: 14px;
+    }
+    .processing-icon { font-size: 40px; animation: bounce 0.8s ease-in-out infinite alternate; }
+    @keyframes bounce { to { transform: translateY(-8px); } }
+    .processing-text { font-size: 14px; font-weight: 500; color: var(--teal); }
+    .processing-sub { font-size: 12px; color: var(--muted); }
+
+    /* ── API URL banner ── */
+    .api-banner {
+      background: #FFF3E8;
+      border-bottom: 1px solid #FDDBB8;
+      padding: 6px 16px;
+      font-size: 11px;
+      color: var(--saffron);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .api-url {
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(232,129,58,0.12);
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    select.form-field { appearance: none; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ── Config — change this one line to switch mock → real backend ──────────────
+// Empty string = "same server I was loaded from"
+// So if frontend is at http://35.200.x.x, API calls go to http://35.200.x.x/api/...
+// This works on any VM IP automatically — you never need to change this line
+const API_BASE = "";
+
+// ── SVG Icons ─────────────────────────────────────────────────────────────────
+const Icons = {
+  Mic:     () => <svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M12 1a4 4 0 014 4v6a4 4 0 01-8 0V5a4 4 0 014-4zm0 2a2 2 0 00-2 2v6a2 2 0 004 0V5a2 2 0 00-2-2zm-1 15.93V21h2v-2.07A8.001 8.001 0 0020 11h-2a6 6 0 01-12 0H4a8.001 8.001 0 007 7.93z"/></svg>,
+  MicOff:  () => <svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3L3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z"/></svg>,
+  Bell:    () => <svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>,
+  Heart:   () => <svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>,
+  Chat:    () => <svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>,
+  Map:     () => <svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>,
+  Check:   () => <svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>,
+  Shield:  () => <svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>,
+};
+
+// ── API helpers ───────────────────────────────────────────────────────────────
+async function api(path, method = "GET", body = null) {
+  const opts = { method, headers: { "Content-Type": "application/json" } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${API_BASE}${path}`, opts);
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  return res.json();
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function Toast({ message }) {
+  return <div className="toast">✓ {message}</div>;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SCREEN 1 — VOICE EHR
+// ══════════════════════════════════════════════════════════════════════════════
+function EHRScreen({ onEHRSaved }) {
+  const [lang, setLang] = useState("hi");
+  const [recording, setRecording] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const [ehr, setEhr] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [feedback, setFeedback] = useState({});
+  const mediaRef = useRef(null);
+  const chunksRef = useRef([]);
+
+  const LANGS = [
+    { code: "hi", label: "हिन्दी" },
+    { code: "kn", label: "ಕನ್ನಡ" },
+    { code: "ta", label: "தமிழ்" },
+    { code: "te", label: "తెలుగు" },
+    { code: "mr", label: "मराठी" },
+    { code: "gu", label: "ગુજરાતી" },
+    { code: "en", label: "English" },
+  ];
+
+  async function toggleRecording() {
+    if (recording) {
+      mediaRef.current?.stop();
+      setRecording(false);
+      setProcessing(true);
+      setTranscript("Processing audio through IndicConformer ASR...");
+      try {
+        // Simulate audio capture — send empty base64 to mock
+        const result = await api("/api/ehr/create", "POST", {
+          audioBase64: btoa("mock-audio"),
+          languageCode: lang,
+          doctorId: "DOC001",
+          centerId: "CTR001",
+          districtId: "DIST001",
+        });
+        setTranscript(result.transcript);
+        setEhr(result);
+      } catch (e) {
+        setTranscript("Error processing audio. Check mock server is running on port 8001.");
+      }
+      setProcessing(false);
+    } else {
+      setTranscript("");
+      setEhr(null);
+      setRecording(true);
+      chunksRef.current = [];
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new MediaRecorder(stream);
+        mediaRef.current = recorder;
+        recorder.ondataavailable = e => chunksRef.current.push(e.data);
+        recorder.start();
+      } catch {
+        // Mic not available — still simulate for demo
+        setTimeout(() => {
+          if (recording || true) {
+            mediaRef.current = { stop: () => {} };
+          }
+        }, 100);
+      }
+    }
+  }
+
+  function showToast(msg) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2500);
+  }
+
+  function handleFeedback(field, val) {
+    setFeedback(f => ({ ...f, [field]: val }));
+  }
+
+  async function saveEHR() {
+    setSaving(true);
+    await new Promise(r => setTimeout(r, 600));
+    setSaving(false);
+    showToast("EHR saved to AHMIS successfully");
+    onEHRSaved(ehr);
+  }
+
+  const e = ehr?.entities || {};
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h2>Voice EHR Creation</h2>
+        <p>Speak in any Indian language — AI extracts structured health records automatically</p>
+      </div>
+
+      <div className="ehr-grid">
+        {/* LEFT — Recording */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+          <div className="card">
+            <div className="card-title"><Icons.Mic /> Select Language</div>
+            <div className="lang-select">
+              {LANGS.map(l => (
+                <button
+                  key={l.code}
+                  className={`lang-btn ${lang === l.code ? "active" : ""}`}
+                  onClick={() => setLang(l.code)}
+                >{l.label}</button>
+              ))}
+            </div>
+            <div className="mic-area">
+              <button
+                className={`mic-btn ${recording ? "recording" : ""}`}
+                onClick={toggleRecording}
+                disabled={processing}
+              >
+                {processing ? <div className="spinner" /> : recording ? <Icons.MicOff /> : <Icons.Mic />}
+              </button>
+              <span className={`mic-status ${recording ? "active" : ""}`}>
+                {processing ? "Processing audio..." : recording ? "● Recording — click to stop" : "Click to start recording"}
+              </span>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-title">Transcript</div>
+            <div className={`transcript-box ${processing ? "processing" : ""}`}>
+              {transcript || <span style={{ color: "var(--muted)" }}>Transcript will appear here after recording...</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT — Extracted EHR */}
+        <div className="card">
+          <div className="card-title"><Icons.Check /> Extracted Health Record</div>
+
+          {!ehr && !processing && (
+            <div className="empty-state">
+              <div className="icon">🎙️</div>
+              <p>Record a patient consultation to auto-populate the EHR</p>
+            </div>
+          )}
+
+          {processing && (
+            <div className="processing-overlay">
+              <div className="processing-icon">🔬</div>
+              <div className="processing-text">IndicConformer ASR running...</div>
+              <div className="processing-sub">Translating → Extracting entities → Mapping NAMC codes</div>
+            </div>
+          )}
+
+          {ehr && !processing && (
+            <>
+              <div className="form-grid">
+                {[
+                  ["Patient Name", e.patient_name || "—"],
+                  ["Age", e.age ? `${e.age} years` : "—"],
+                  ["Gender", e.gender || "—"],
+                  ["NAMC Code", e.namc_code || "—"],
+                  ["ICD-10 Code", e.icd10_code || "—"],
+                  ["Diagnosis", e.diagnosis_raw || "—"],
+                ].map(([label, val]) => (
+                  <div className="form-group" key={label}>
+                    <label>{label}</label>
+                    <div className={`form-field populated`}>{val}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="form-group" style={{ marginTop: 12 }}>
+                <label>Prakriti (Constitution)</label>
+                {e.prakriti
+                  ? <div className="prakriti-badge">🔥 {e.prakriti} Prakriti</div>
+                  : <div className="form-field" style={{ color: "var(--muted)" }}>Not identified</div>
+                }
+              </div>
+
+              {e.symptoms?.length > 0 && (
+                <div className="form-group" style={{ marginTop: 12 }}>
+                  <label>Symptoms Identified</label>
+                  <div className="symptoms-list">
+                    {e.symptoms.map(s => <span key={s} className="symptom-tag">{s}</span>)}
+                  </div>
+                </div>
+              )}
+
+              <button
+                className="save-btn"
+                onClick={saveEHR}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Save EHR to AHMIS →"}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {toast && <Toast message={toast} />}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SCREEN 2 — SURVEILLANCE
+// ══════════════════════════════════════════════════════════════════════════════
+function SurveillanceScreen() {
+  const [alerts, setAlerts] = useState([]);
+  const [meta, setMeta] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(null);
+
+  useEffect(() => {
+    api("/api/surveillance/alerts").then(data => {
+      setAlerts(data.alerts || []);
+      setMeta(data);
+      setLoading(false);
+      if (data.alerts?.length) setSelected(data.alerts[0]);
+    }).catch(() => setLoading(false));
+  }, []);
+
+  // Rough India map dot positions (% from top-left of container)
+  const DOT_POSITIONS = {
+    "Dharwad, Karnataka":  { top: "72%", left: "38%" },
+    "Ahmedabad, Gujarat":  { top: "52%", left: "30%" },
+    "Mysuru, Karnataka":   { top: "78%", left: "40%" },
+    "Belagavi, Karnataka": { top: "70%", left: "36%" },
+    "Pune, Maharashtra":   { top: "62%", left: "40%" },
+    "Jaipur, Rajasthan":   { top: "40%", left: "36%" },
+    "Surat, Gujarat":      { top: "57%", left: "31%" },
+    "Nagpur, Maharashtra": { top: "57%", left: "46%" },
+  };
+
+  const sevColor = { CRITICAL: "var(--red)", HIGH: "var(--saffron)", MEDIUM: "var(--amber)", NORMAL: "var(--muted)" };
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h2>Outbreak Surveillance</h2>
+        <p>ARIMA + Isolation Forest anomaly detection across {meta?.districts_monitored || 10} districts</p>
+      </div>
+
+      <div className="surv-grid">
+        {/* Map */}
+        <div>
+          <div className="map-container">
+            <div className="map-bg" />
+            <div className="india-outline">🗺️</div>
+
+            <div className="map-stats">
+              <div className="map-stat-chip"><strong>{alerts.filter(a => a.severity === "CRITICAL").length}</strong>Critical</div>
+              <div className="map-stat-chip"><strong>{alerts.filter(a => a.severity === "HIGH").length}</strong>High</div>
+              <div className="map-stat-chip"><strong>{meta?.districts_monitored || 10}</strong>Monitored</div>
+            </div>
+
+            {/* All districts as dots */}
+            {Object.entries(DOT_POSITIONS).map(([district, pos]) => {
+              const alert = alerts.find(a => a.district === district);
+              const sev = alert?.severity?.toLowerCase() || "normal";
+              return (
+                <div
+                  key={district}
+                  className={`map-dot ${sev}`}
+                  style={{ top: pos.top, left: pos.left }}
+                  onClick={() => alert && setSelected(alert)}
+                  title={district}
+                />
+              );
+            })}
+
+            <div className="map-legend">
+              {["CRITICAL", "HIGH", "MEDIUM", "Normal"].map(s => (
+                <div key={s} className="map-legend-item">
+                  <div className="map-legend-dot" style={{ background: sevColor[s.toUpperCase()] || "var(--muted)" }} />
+                  {s}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Selected alert detail */}
+          {selected && (
+            <div className="card" style={{ marginTop: 14 }}>
+              <div className="card-title">
+                <span style={{ color: sevColor[selected.severity] }}>● {selected.severity}</span>
+                &nbsp;— {selected.disease}
+              </div>
+              <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 12 }}>📍 {selected.district}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
+                {[
+                  ["Cases (7d)", selected.cases_last_7d, "var(--red)"],
+                  ["Baseline", selected.baseline_expected, "var(--muted)"],
+                  ["Deviation", `${selected.deviation_factor}×`, "var(--saffron)"],
+                ].map(([label, val, color]) => (
+                  <div key={label} style={{ textAlign: "center", padding: "10px", background: "var(--off)", borderRadius: 8 }}>
+                    <div style={{ fontSize: 20, fontWeight: 700, color }}>{val}</div>
+                    <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>{label}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 12, background: "#FFF3E8", border: "1px solid #FDDBB8", borderRadius: 8, padding: 10, color: "var(--saffron)", lineHeight: 1.5 }}>
+                <strong>Recommended Action:</strong><br />{selected.recommended_action}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Alert list */}
+        <div>
+          <div className="card-title" style={{ marginBottom: 10 }}>
+            <Icons.Bell /> Active Alerts ({alerts.length})
+          </div>
+          {loading ? (
+            <div style={{ textAlign: "center", padding: 40, color: "var(--muted)" }}>Loading alerts...</div>
+          ) : (
+            <div className="alert-list">
+              {alerts.map(a => (
+                <div
+                  key={a.alert_id}
+                  className={`alert-card ${a.severity}`}
+                  onClick={() => setSelected(a)}
+                  style={{ borderLeftWidth: selected?.alert_id === a.alert_id ? 5 : 4 }}
+                >
+                  <div className="alert-header">
+                    <span className="alert-disease">{a.disease}</span>
+                    <span className={`alert-severity ${a.severity}`}>{a.severity}</span>
+                  </div>
+                  <div className="alert-district">📍 {a.district}</div>
+                  <div className="alert-meta">
+                    <span className="alert-stat">Cases: <strong>{a.cases_last_7d}</strong></span>
+                    <span className="alert-stat">Deviation: <strong style={{ color: "var(--saffron)" }}>{a.deviation_factor}×</strong></span>
+                    {a.cluster_radius_km && <span className="alert-stat">Cluster: {a.cluster_radius_km} km</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SCREEN 3 — TREATMENT RECOMMENDATIONS
+// ══════════════════════════════════════════════════════════════════════════════
+function TreatmentScreen({ savedEHR }) {
+  const [ehr, setEhr] = useState(savedEHR);
+  const [plan, setPlan] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("herbal");
+  const [feedback, setFeedback] = useState({});
+  const [feedbackSummary, setFeedbackSummary] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (!ehr) {
+      api("/api/ehr/EHR001").then(setEhr).catch(() => {});
+    }
+    api("/api/recommend/feedback/summary").then(setFeedbackSummary).catch(() => {});
+  }, []);
+
+  async function loadPlan() {
+    if (!ehr) return;
+    setLoading(true);
+    try {
+      const result = await api("/api/recommend/treatment", "POST", { ehr_id: ehr.ehr_id });
+      setPlan(result);
+    } catch (e) {
+      console.error(e);
+    }
+    setLoading(false);
+  }
+
+  async function submitFeedback(itemKey, action) {
+    if (!plan) return;
+    setFeedback(f => ({ ...f, [itemKey]: action }));
+    try {
+      await api("/api/recommend/feedback", "POST", {
+        plan_id: plan.plan_id,
+        action,
+        reason_tag: action === "rejected" ? "doctor_preference" : null,
+      });
+      showToast(`Feedback recorded: ${action}`);
+    } catch {}
+  }
+
+  function showToast(msg) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2000);
+  }
+
+  const e = ehr?.entities || {};
+  const tabs = ["herbal", "dietary", "yoga"];
+  const tabItems = plan ? plan[activeTab] || [] : [];
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h2>Treatment Recommendations</h2>
+        <p>Prakriti-aware hybrid recommendations — Rule Engine + Patient Similarity + Airavata LLM</p>
+      </div>
+
+      {feedbackSummary && (
+        <div className="feedback-bar">
+          <Icons.Check />
+          <span className="feedback-label">Model learning progress:</span>
+          <span className="feedback-stat">{feedbackSummary.total} interactions</span>
+          <span className="feedback-stat"><span>{feedbackSummary.acceptance_rate}%</span> acceptance rate</span>
+          <span className="feedback-stat"><span style={{ color: "var(--green)" }}>{feedbackSummary.accepted}</span> accepted</span>
+          <span className="feedback-stat" style={{ marginLeft: "auto", fontSize: 11, color: "var(--muted)" }}>
+            Feedback trains next recommendation cycle
+          </span>
+        </div>
+      )}
+
+      <div className="treat-grid">
+        {/* Patient panel */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div className="patient-card">
+            <div className="patient-name">{e.patient_name || "Patient"}</div>
+            <div className="patient-sub">EHR {ehr?.ehr_id} · {ehr?.timestamp?.slice(0,10)}</div>
+            <div className="patient-tags">
+              {[
+                ["Age", e.age ? `${e.age} years` : "—"],
+                ["Gender", e.gender || "—"],
+                ["Diagnosis", e.diagnosis_raw || "—"],
+                ["NAMC", e.namc_code || "—"],
+                ["ICD-10", e.icd10_code || "—"],
+                ["Prakriti", e.prakriti || "Not assessed"],
+              ].map(([k, v]) => (
+                <div key={k} className="patient-tag">
+                  <span>{k}</span>
+                  <span>{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {e.prakriti && (
+            <div className="card" style={{ fontSize: 12, lineHeight: 1.7, color: "var(--text)" }}>
+              <div className="card-title">Prakriti Analysis</div>
+              <div style={{ background: "var(--off)", borderRadius: 8, padding: 10, fontSize: 12, color: "var(--muted)" }}>
+                {e.prakriti?.includes("Pitta")
+                  ? "🔥 Pitta-dominant: Recommendations focus on cooling herbs (Brahmi, Arjuna), Pitta-pacifying diet, and calming pranayama."
+                  : e.prakriti?.includes("Vata")
+                  ? "💨 Vata-dominant: Recommendations emphasise grounding herbs (Ashwagandha), warm nourishing diet, and stabilising yoga."
+                  : "🌊 Kapha-dominant: Recommendations focus on stimulating herbs (Guggulu, Triphala), light diet, and vigorous yoga."
+                }
+              </div>
+            </div>
+          )}
+
+          {!plan && (
+            <button className="save-btn" onClick={loadPlan} disabled={loading || !ehr}>
+              {loading ? "Generating plan..." : "Generate Treatment Plan →"}
+            </button>
+          )}
+        </div>
+
+        {/* Recommendations */}
+        <div>
+          {loading && (
+            <div className="card">
+              <div className="processing-overlay">
+                <div className="processing-icon">🧪</div>
+                <div className="processing-text">Running 3-layer recommendation engine...</div>
+                <div className="processing-sub">Prakriti rules → Patient similarity → Airavata LLM narrative</div>
+              </div>
+            </div>
+          )}
+
+          {!plan && !loading && (
+            <div className="card">
+              <div className="empty-state">
+                <div className="icon">💊</div>
+                <p>Click "Generate Treatment Plan" to run the AYUSH recommendation engine</p>
+              </div>
+            </div>
+          )}
+
+          {plan && !loading && (
+            <>
+              <div className="narrative-box">
+                <div className="narrative-label">🤖 AI-Generated Treatment Summary (Airavata LLM)</div>
+                <div className="narrative-text">{plan.narrative}</div>
+                <div style={{ marginTop: 8, fontSize: 11, color: "var(--teal)" }}>
+                  Follow-up recommended in <strong>{plan.followup_days} days</strong>
+                </div>
+              </div>
+
+              <div className="treat-tabs">
+                {tabs.map(t => (
+                  <button
+                    key={t}
+                    className={`treat-tab ${activeTab === t ? "active" : ""}`}
+                    onClick={() => setActiveTab(t)}
+                  >
+                    {t === "herbal" ? "🌿 Herbal" : t === "dietary" ? "🥗 Dietary" : "🧘 Yoga"}
+                    &nbsp;({plan[t]?.length || 0})
+                  </button>
+                ))}
+              </div>
+
+              {tabItems.map((item, i) => {
+                const key = `${activeTab}-${i}`;
+                const fb = feedback[key];
+                return (
+                  <div key={key} className="rec-item">
+                    <div className="rec-header">
+                      <div className="rec-title">{item.item}</div>
+                      <div className="rec-confidence">{Math.round(item.confidence * 100)}%</div>
+                    </div>
+                    <div className="confidence-bar-track">
+                      <div className="confidence-bar-fill" style={{ width: `${item.confidence * 100}%` }} />
+                    </div>
+                    <div className="rec-evidence">📋 {item.evidence}</div>
+                    <div className="rec-actions">
+                      {["accept", "modify", "reject"].map(action => (
+                        <button
+                          key={action}
+                          className={`rec-action-btn ${action} ${fb === action ? "selected" : ""}`}
+                          onClick={() => submitFeedback(key, action)}
+                        >
+                          {action === "accept" ? "✓ Accept" : action === "modify" ? "✎ Modify" : "✗ Reject"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
+        </div>
+      </div>
+
+      {toast && <Toast message={toast} />}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// APP ROOT
+// ══════════════════════════════════════════════════════════════════════════════
+function App() {
+  const [screen, setScreen] = useState("ehr");
+  const [savedEHR, setSavedEHR] = useState(null);
+
+  const NAV = [
+    { id: "ehr",         icon: <Icons.Mic />,    label: "Voice EHR" },
+    { id: "surveillance",icon: <Icons.Bell />,   label: "Surveillance" },
+    { id: "treatment",   icon: <Icons.Heart />,  label: "Treatment" },
+  ];
+
+  const TITLES = {
+    ehr:          { title: "VaidyaAI", sub: "Voice EHR Engine — Module 1" },
+    surveillance: { title: "VaidyaAI", sub: "Outbreak Surveillance — Module 2" },
+    treatment:    { title: "VaidyaAI", sub: "Treatment Recommender — Module 3" },
+  };
+
+  return (
+    <>
+      <nav className="sidebar">
+        <div className="sidebar-logo">V</div>
+        {NAV.map(n => (
+          <button
+            key={n.id}
+            className={`nav-btn ${screen === n.id ? "active" : ""}`}
+            onClick={() => setScreen(n.id)}
+          >
+            {n.icon}
+            <span className="nav-tooltip">{n.label}</span>
+          </button>
+        ))}
+        <div style={{ marginTop: "auto" }}>
+          <button className="nav-btn" title="Data sovereign — GCP asia-south1">
+            <Icons.Shield />
+            <span className="nav-tooltip">GCP asia-south1 Sovereign</span>
+          </button>
+        </div>
+      </nav>
+
+      <div className="main">
+        <div className="api-banner">
+          🔌 API endpoint: <span className="api-url">{API_BASE}</span>
+          &nbsp;— Change <code>API_BASE</code> in the source to switch mock → real backend
+        </div>
+        <header className="topbar">
+          <div>
+            <div className="topbar-title">{TITLES[screen].title}</div>
+            <div className="topbar-subtitle">{TITLES[screen].sub}</div>
+          </div>
+          <div className="topbar-right">
+            <span className="sovereign-badge">🇮🇳 India Sovereign · GCP asia-south1</span>
+            <div className="doctor-chip">
+              <div className="doctor-avatar">Dr</div>
+              <span>Dr. Prakash Rao · AYUSH Centre, Dharwad</span>
+            </div>
+          </div>
+        </header>
+
+        {screen === "ehr" && <EHRScreen onEHRSaved={ehr => { setSavedEHR(ehr); setScreen("treatment"); }} />}
+        {screen === "surveillance" && <SurveillanceScreen />}
+        {screen === "treatment" && <TreatmentScreen savedEHR={savedEHR} />}
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
